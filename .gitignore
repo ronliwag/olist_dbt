@@ -5,3 +5,4 @@ target/
 .env
 venv/
 data/
+postgresql-42.7.12.jar
