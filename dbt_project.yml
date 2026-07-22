@@ -9,16 +9,14 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-seeds:
-  # Builds seeds into '<your_schema_name>_raw'
-  olist_dbt:
-    +schema: raw
+#seeds:
+#  olist_dbt:
+#    +schema: raw
 
 models:
   olist_dbt:
     +static_analysis: strict
-    # Materialize staging models as views, and marts as tables
     staging:
       +materialized: view
-    marts:
-      +materialized: table
+#    marts:
+#      +materialized: table
