@@ -1,5 +1,5 @@
 with source as (
-    select * from {{ source('raw_olist', 'raw_customers') }}
+    select * from {{ source('clnd_olist', 'clnd_customers') }}
 ),
 
 renamed as (

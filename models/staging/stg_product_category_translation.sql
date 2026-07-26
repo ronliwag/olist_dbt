@@ -1,5 +1,5 @@
 with source as (
-    select * from {{ source('raw_olist', 'raw_product_category_name_translation') }}
+    select * from {{ source('clnd_olist', 'clnd_product_category_translation') }}
 ),
 
 renamed as (
