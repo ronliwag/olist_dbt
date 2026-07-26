@@ -3,7 +3,7 @@ version: 2
 sources:
   - name: clnd_olist
     database: olist
-    schema: clnd
+    schema: cleaned
     tables:
       - name: clnd_customers
       - name: clnd_orders

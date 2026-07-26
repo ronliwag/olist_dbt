@@ -5,9 +5,9 @@ with source as (
 renamed_and_casted as (
     select
         order_id,
-        payment_sequential,
+        cast(payment_sequential as integer) as payment_sequential,
         payment_type,
-        payment_value
+        cast(payment_value as numeric) as payment_value
     from source
 )
 
