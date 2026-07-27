@@ -64,9 +64,9 @@ def run_pipeline():
         raw_trans = pd.read_sql(f'SELECT * FROM "{RAW_SCHEMA}"."raw_product_category_name_translation"', engine)
         clean_trans_df = clean_product_category_translation(raw_trans)
         write_cleaned_data(clean_trans_df, "clnd_product_category_translation")
-        print(f"✅ Wrote {len(clean_trans_df)} rows to '{CLEANED_SCHEMA}.clnd_product_category_translation'.\n")
+        print(f"Wrote {len(clean_trans_df)} rows to '{CLEANED_SCHEMA}.clnd_product_category_translation'.\n")
     except Exception as e:
-        print(f"❌ Failed processing 'raw_product_category_name_translation': {str(e)}\n")
+        print(f"Failed processing 'raw_product_category_name_translation': {str(e)}\n")
         clean_trans_df = None
 
     # Step B: Pipeline mapping for standard tables
@@ -81,7 +81,7 @@ def run_pipeline():
     ]
 
     for raw_tbl, clnd_tbl, clean_fn in pipeline_config:
-        print(f"📦 Processing: '{RAW_SCHEMA}.{raw_tbl}' -> '{CLEANED_SCHEMA}.{clnd_tbl}'...")
+        print(f"Processing: '{RAW_SCHEMA}.{raw_tbl}' -> '{CLEANED_SCHEMA}.{clnd_tbl}'...")
         try:
             # READ from raw schema
             raw_df = pd.read_sql(f'SELECT * FROM "{RAW_SCHEMA}"."{raw_tbl}"', engine)
@@ -89,19 +89,19 @@ def run_pipeline():
             
             # WRITE to staging schema safely
             write_cleaned_data(cleaned_df, clnd_tbl)
-            print(f"✅ Wrote {len(cleaned_df)} rows to '{CLEANED_SCHEMA}.{clnd_tbl}'.\n")
+            print(f"Wrote {len(cleaned_df)} rows to '{CLEANED_SCHEMA}.{clnd_tbl}'.\n")
         except Exception as e:
-            print(f"❌ Failed processing '{raw_tbl}': {str(e)}\n")
+            print(f"Failed processing '{raw_tbl}': {str(e)}\n")
 
     # Step C: Clean products passing translated categories lookup
-    print(f"📦 Processing: {RAW_SCHEMA}.raw_products -> {CLEANED_SCHEMA}.clnd_products...")
+    print(f"Processing: {RAW_SCHEMA}.raw_products -> {CLEANED_SCHEMA}.clnd_products...")
     try:
         raw_products = pd.read_sql(f'SELECT * FROM "{RAW_SCHEMA}"."raw_products"', engine)
         clean_prod_df = clean_products(raw_products, clean_trans_df)
         write_cleaned_data(clean_prod_df, "clnd_products")
-        print(f"✅ Wrote {len(clean_prod_df)} rows to '{CLEANED_SCHEMA}.clnd_products'.")
+        print(f"Wrote {len(clean_prod_df)} rows to '{CLEANED_SCHEMA}.clnd_products'.")
     except Exception as e:
-        print(f"❌ Failed processing 'raw_products': {str(e)}")
+        print(f"Failed processing 'raw_products': {str(e)}")
 
 
 if __name__ == "__main__":
