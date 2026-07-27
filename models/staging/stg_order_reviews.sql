@@ -1,5 +1,5 @@
 with source as (
-    select * from {{ source('raw_olist', 'raw_order_reviews') }}
+    select * from {{ source('clnd_olist', 'clnd_order_reviews') }}
 ),
 
 renamed_and_casted as (

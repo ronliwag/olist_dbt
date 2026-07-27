@@ -1,5 +1,5 @@
 with source as (
-    select * from {{ source('raw_olist', 'raw_geolocation') }}
+    select * from {{ source('clnd_olist', 'clnd_geolocation') }}
 ),
 
 renamed as (

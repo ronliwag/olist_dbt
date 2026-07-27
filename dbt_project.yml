@@ -18,5 +18,5 @@ models:
     +static_analysis: strict
     staging:
       +materialized: view
-#    marts:
-#      +materialized: table
+    marts:
+      +materialized: table

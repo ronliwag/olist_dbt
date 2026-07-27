@@ -1,16 +1,16 @@
 version: 2
 
 sources:
-  - name: raw_olist
+  - name: clnd_olist
     database: olist
-    schema: raw
+    schema: cleaned
     tables:
-      - name: raw_customers
-      - name: raw_orders
-      - name: raw_order_items
-      - name: raw_order_payments
-      - name: raw_products
-      - name: raw_sellers
-      - name: raw_geolocation
-      - name: raw_order_reviews
-      - name: raw_product_category_name_translation
+      - name: clnd_customers
+      - name: clnd_orders
+      - name: clnd_order_items
+      - name: clnd_order_payments
+      - name: clnd_products
+      - name: clnd_sellers
+      - name: clnd_geolocation
+      - name: clnd_order_reviews
+      - name: clnd_product_category_translation
