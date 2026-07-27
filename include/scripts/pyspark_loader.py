@@ -1,4 +1,5 @@
 import os
+import psycopg2
 from dotenv import load_dotenv
 from pyspark.sql import SparkSession  # type: ignore
 
@@ -12,8 +13,9 @@ DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "olist")
 
-SPARK_JARS_PATH = os.getenv("SPARK_JARS_PATH", "./postgresql-42.7.12.jar")
-RAW_DIR = os.getenv("RAW_DATA_DIR", "./data/raw")
+# Absolute fallbacks for inside Astronomer Docker containers
+SPARK_JARS_PATH = os.getenv("SPARK_JARS_PATH", "/usr/local/airflow/include/postgresql-42.7.12.jar")
+RAW_DIR = os.getenv("RAW_DATA_DIR", "/usr/local/airflow/include/data/raw")
 
 # Construct JDBC Database URL dynamically
 DB_URL = f"jdbc:postgresql://{DB_HOST}:{DB_PORT}/{DB_NAME}"
@@ -30,6 +32,20 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 print(f"Starting PySpark Raw Data Ingestion into PostgreSQL ({DB_HOST}:{DB_PORT}/{DB_NAME})...")
+
+# Create 'raw' schema in PostgreSQL if it doesn't exist
+try:
+    conn = psycopg2.connect(
+        dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT
+    )
+    cursor = conn.cursor()
+    cursor.execute("CREATE SCHEMA IF NOT EXISTS raw;")
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("Ensured 'raw' schema exists in PostgreSQL.")
+except Exception as e:
+    print(f"Schema creation notice: {e}")
 
 # Verify raw directory exists
 if not os.path.exists(RAW_DIR):
