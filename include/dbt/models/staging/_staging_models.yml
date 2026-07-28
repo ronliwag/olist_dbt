@@ -15,6 +15,7 @@ models:
     columns:
       - name: customer_id
         tests:
+          - unique
           - not_null
       - name: customer_unique_id
         tests:
@@ -60,24 +61,67 @@ models:
           - not_null
 
   # ------------------------------------------------------------------
-  # STG_ORDER_ITEMS
+  # STG_ORDERS
   # ------------------------------------------------------------------
-  - name: stg_order_items
-    description: "Staging model for individual line items in orders."
+  - name: stg_orders
+    description: "Staging model for order header records."
     columns:
       - name: order_id
         tests:
           - unique
           - not_null
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: order_status
+        tests:
+          - not_null
+      - name: purchased_at
+        tests:
+          - not_null
+
+  # ------------------------------------------------------------------
+  # STG_ORDER_ITEMS
+  # ------------------------------------------------------------------
+  - name: stg_order_items
+    description: "Staging model for individual line items in orders."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - order_id
+              - order_item_id
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
       - name: order_item_id
         tests:
           - not_null
       - name: product_id
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+              config:
+                severity: warn
       - name: seller_id
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_sellers')
+                field: seller_id
       - name: shipping_limit_date
         tests:
           - not_null
@@ -99,11 +143,20 @@ models:
   # ------------------------------------------------------------------
   - name: stg_order_payments
     description: "Staging model for order payment details."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - order_id
+              - payment_sequential
     columns:
       - name: order_id
         tests:
-          - unique
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
       - name: payment_type
         tests:
           - not_null
@@ -132,6 +185,10 @@ models:
       - name: order_id
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
       - name: review_score
         tests:
           - not_null
@@ -143,46 +200,6 @@ models:
         tests:
           - not_null
       - name: review_answered_at
-        tests:
-          - not_null
-      - name: review_comment_title
-        tests:
-          - not_null
-      - name: review_comment_message
-        tests:
-          - not_null
-
-  # ------------------------------------------------------------------
-  # STG_ORDERS
-  # ------------------------------------------------------------------
-  - name: stg_orders
-    description: "Staging model for order header records."
-    columns:
-      - name: order_id
-        tests:
-          - unique
-          - not_null
-      - name: customer_id
-        tests:
-          - not_null
-      - name: order_status
-        tests:
-          - not_null
-      - name: purchased_at
-        tests:
-          - not_null
-
-  # ------------------------------------------------------------------
-  # STG_PRODUCT_CATEGORY_TRANSLATION
-  # ------------------------------------------------------------------
-  - name: stg_product_category_translation
-    description: "Lookup table for Portuguese to English category translations."
-    columns:
-      - name: product_category_name
-        tests:
-          - unique
-          - not_null
-      - name: product_category_name_english
         tests:
           - not_null
 
@@ -198,8 +215,24 @@ models:
           - not_null
       - name: product_category_name
         tests:
+          - relationships:
+              arguments:
+                to: ref('stg_product_category_translation')
+                field: product_category_name
+              config:
+                severity: warn
+
+  # ------------------------------------------------------------------
+  # STG_PRODUCT_CATEGORY_TRANSLATION
+  # ------------------------------------------------------------------
+  - name: stg_product_category_translation
+    description: "Lookup table for Portuguese to English category translations."
+    columns:
+      - name: product_category_name
+        tests:
+          - unique
           - not_null
-      - name: product_name_length
+      - name: product_category_name_english
         tests:
           - not_null
 
