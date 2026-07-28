@@ -9,12 +9,12 @@ load_dotenv()
 # Retrieve credentials & paths with fallback defaults
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
-DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_HOST = os.getenv("DB_HOST", "olist-db")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "olist")
 
 # Absolute fallbacks for inside Astronomer Docker containers
-SPARK_JARS_PATH = os.getenv("SPARK_JARS_PATH", "/usr/local/airflow/include/postgresql-42.7.12.jar")
+SPARK_JARS_PATH = os.getenv("SPARK_JARS_PATH", "/usr/local/airflow/include/jars/postgresql-42.7.12.jar")
 RAW_DIR = os.getenv("RAW_DATA_DIR", "/usr/local/airflow/include/data/raw")
 
 # Construct JDBC Database URL dynamically

@@ -1,4 +1,4 @@
-astronomer-cosmos
+astronomer-cosmos[dbt-postgres]
 apache-airflow-providers-postgres
 dbt-postgres
 kaggle==2.2.3

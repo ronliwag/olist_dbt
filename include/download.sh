@@ -1,33 +1,28 @@
 #!/usr/bin/env bash
-# Make sure to run: chmod +x include/download.sh
 set -e 
 
-# 1. Load credentials from .env file if present
+# 1. Fallback environment loading if running outside Airflow execution
 if [ -f /usr/local/airflow/.env ]; then
     export $(grep -v '^#' /usr/local/airflow/.env | xargs)
 fi
 
-# Set Container Paths
+# 2. Use environment variables with default fallbacks
 OUTPUT_DIR="${RAW_DATA_DIR:-/usr/local/airflow/include/data/raw}"
-JAR_PATH="${SPARK_JARS_PATH:-/usr/local/airflow/include/postgresql-42.7.12.jar}"
+JAR_PATH="${SPARK_JARS_PATH:-/usr/local/airflow/include/jars/postgresql-42.7.12.jar}"
+JARS_DIR="$(dirname "$JAR_PATH")"
 DATASET_NAME="olistbr/brazilian-ecommerce"
 
+# Ensure directories exist
 mkdir -p "$OUTPUT_DIR"
-mkdir -p "$(dirname "$JAR_PATH")"
+mkdir -p "$JARS_DIR"
 
-# 2. Download PostgreSQL JDBC Driver JAR (if not present)
+# 3. Download PostgreSQL JDBC Driver JAR (if not present)
 if [ ! -f "$JAR_PATH" ]; then
     echo "[$(date)] Downloading PostgreSQL JDBC Driver..."
-    curl -sSL -o "$JAR_PATH" "https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.12/postgresql-42.7.12.jar"
+    curl -L "https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.12/postgresql-42.7.12.jar" -o "$JAR_PATH"
     echo "[$(date)] Downloaded JDBC JAR to $JAR_PATH"
 else
     echo "[$(date)] PostgreSQL JDBC JAR already exists. Skipping download."
-fi
-
-# 3. Allow command line arguments to override credentials if passed
-if [ -n "$1" ] && [ -n "$2" ]; then
-    export KAGGLE_USERNAME="$1"
-    export KAGGLE_KEY="$2"
 fi
 
 # 4. Verify Kaggle Credentials
