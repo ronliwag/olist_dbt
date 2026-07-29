@@ -82,7 +82,7 @@ with DAG(
         group_id="dbt_transformations",
         project_config=ProjectConfig(DBT_PROJECT_PATH),
         profile_config=ProfileConfig(
-            profile_name="olist",
+            profile_name="olist_dbt",
             target_name="dev",
             profile_mapping=PostgresUserPasswordProfileMapping(
                 conn_id="postgres_default",
