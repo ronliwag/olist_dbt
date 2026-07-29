@@ -1,0 +1,21 @@
+version: "3.1"
+
+services:
+  # Container instance for your raw and transformed database
+  olist-db:
+    image: postgres:15-alpine
+    container_name: olist_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-olist}
+    ports:
+      - "5433:5432"  # Maps DB to port 5432 on your host machine for DBeaver/psql access
+    volumes:
+      - olist_postgres_data:/var/lib/postgresql/data
+    networks:
+      - airflow
+
+volumes:
+  olist_postgres_data:

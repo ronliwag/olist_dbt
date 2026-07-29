@@ -6,3 +6,4 @@ target/
 venv/
 data/
 postgresql-42.7.12.jar
+include/jars
