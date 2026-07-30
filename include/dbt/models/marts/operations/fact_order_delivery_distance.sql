@@ -33,14 +33,12 @@ sellers as (
     from {{ ref('dim_sellers') }}
 ),
 
--- Aggregate lat/lng to avoid duplicate ZIP rows from stg_geolocation
 geo_locations as (
     select
         geolocation_zip_code_prefix as zip_code_prefix,
-        avg(geolocation_lat) as lat,
-        avg(geolocation_lng) as lng
+        geolocation_lat as lat,
+        geolocation_lng as lng
     from {{ ref('dim_locations') }}
-    group by 1
 )
 
 select
