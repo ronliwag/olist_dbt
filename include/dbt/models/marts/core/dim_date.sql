@@ -1,8 +1,17 @@
-with date_spine as (
-    select distinct
-        date(purchased_at) as date_day
+-- Continuous calendar spine spanning the full range of order activity,
+-- required for DAX time-intelligence functions (SAMEPERIODLASTYEAR, TOTALYTD, ...)
+-- which need every calendar day present, not just days that had an order.
+with bounds as (
+    select
+        min(date(purchased_at)) as min_date,
+        max(date(purchased_at)) as max_date
     from {{ ref('stg_orders') }}
     where purchased_at is not null
+),
+
+date_spine as (
+    select generate_series(min_date, max_date, interval '1 day')::date as date_day
+    from bounds
 )
 
 select

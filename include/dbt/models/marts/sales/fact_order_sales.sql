@@ -38,6 +38,7 @@ select
 
     -- Logistics Lifecycle Timestamps
     o.purchased_at,
+    date(o.purchased_at) as purchase_date_key,
     o.approved_at,
     o.carrier_delivered_at,
     o.customer_delivered_at,

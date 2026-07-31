@@ -2,10 +2,11 @@
 -- and delivery timeframe performance between seller and customer.
 
 with order_items as (
-    select 
-        order_id, 
-        order_item_id, 
-        seller_id 
+    select
+        order_id,
+        order_item_id,
+        seller_id,
+        product_id
     from {{ ref('stg_order_items') }}
 ),
 
@@ -54,6 +55,7 @@ select
     -- Foreign Keys to Dimensions
     o.customer_id,
     oi.seller_id,
+    oi.product_id,
     date(o.purchased_at) as purchase_date_key,
 
     -- Location Identifiers
