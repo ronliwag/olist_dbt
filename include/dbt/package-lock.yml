@@ -1,11 +1,11 @@
 packages:
-- package: godatadriven/dbt_date
-  name: dbt_date
-  version: 0.19.0
-- package: metaplane/dbt_expectations
-  name: dbt_expectations
-  version: 0.10.10
-- package: dbt-labs/dbt_utils
-  name: dbt_utils
-  version: 1.4.1
-sha1_hash: 69edfa76ab6bce8a69807263c4dd6850bf43dc02
+  - name: dbt_utils
+    package: dbt-labs/dbt_utils
+    version: 1.4.1
+  - name: dbt_date
+    package: godatadriven/dbt_date
+    version: 0.19.0
+  - name: dbt_expectations
+    package: metaplane/dbt_expectations
+    version: 0.10.10
+sha1_hash: 973bd92fea39c52f7dab8e69111a1844a1495e59

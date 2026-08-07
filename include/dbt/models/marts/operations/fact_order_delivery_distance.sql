@@ -2,10 +2,11 @@
 -- and delivery timeframe performance between seller and customer.
 
 with order_items as (
-    select 
-        order_id, 
-        order_item_id, 
-        seller_id 
+    select
+        order_id,
+        order_item_id,
+        seller_id,
+        product_id
     from {{ ref('stg_order_items') }}
 ),
 
@@ -33,14 +34,12 @@ sellers as (
     from {{ ref('dim_sellers') }}
 ),
 
--- Aggregate lat/lng to avoid duplicate ZIP rows from stg_geolocation
 geo_locations as (
     select
         geolocation_zip_code_prefix as zip_code_prefix,
-        avg(geolocation_lat) as lat,
-        avg(geolocation_lng) as lng
+        geolocation_lat as lat,
+        geolocation_lng as lng
     from {{ ref('dim_locations') }}
-    group by 1
 )
 
 select
@@ -56,6 +55,7 @@ select
     -- Foreign Keys to Dimensions
     o.customer_id,
     oi.seller_id,
+    oi.product_id,
     date(o.purchased_at) as purchase_date_key,
 
     -- Location Identifiers
