@@ -1,101 +1,107 @@
 # Olist Marketplace — Business Narrative Report
 
-*Companion to [`measures.md`](measures.md). This is the story the dashboard should tell — each act below maps to a specific panel and set of measures, so the visuals aren't just charts, they're evidence for a claim.*
+*Companion to [`measures.md`](measures.md). This is the story the dashboard should tell — each act below maps to a specific page and set of measures, so the visuals aren't just charts, they're evidence for a claim. Revised to match the final four-page build: Executive Overview, Sellers, Logistics, Delivery. Every page now carries its own date-range and multi-state slicer, so every act below can be re-cut by time period and region independently — this wasn't true of earlier drafts, where only the Overview page had a slicer.*
 
 ## Executive summary
 
-Olist's marketplace is growing, but that growth rests on uneven foundations: a small share of sellers carry a disproportionate share of revenue, and shipping cost and delivery reliability vary sharply by region rather than being a uniform operating cost. Distance appears to drive delivery delay, which — though not yet proven with review-score data — is a plausible channel through which regional logistics weakness becomes a customer-trust problem. The recommended actions are seller diversification, regional logistics investment targeted at the worst-performing zones, and closing the current data gap between delivery performance and customer satisfaction.
+Olist's marketplace is growing, but three deeper risks sit just underneath that headline number — all visible from the Executive Overview page alone. A small share of sellers carry a disproportionate share of revenue, and those same top sellers cluster geographically rather than spreading evenly across cities. Shipping cost and delivery reliability both vary sharply by region rather than being a uniform operating cost — and, newly proven in this build, freight cost rises with distance the same way delivery delay does, closing a gap this report used to have to leave as an assumption. The recommended actions are seller diversification, regional logistics investment targeted at the worst-performing zones and cities, and closing the one data gap that remains: connecting delivery performance to customer satisfaction.
 
 ---
 
-## Act 1 — A growing marketplace
+## Act 1 — Executive Overview: a single-glance health check
 
-**Business question:** Is the business growing, and how fast?
+**Business question:** Is the business healthy overall — not just growing, but cost-efficient, reliable, and not overly dependent on a handful of sellers?
 
-Total revenue and order volume trended over time is the opening beat — it establishes the frame that this is a live, scaling business, not a static dataset. Because `dim_date` is now a continuous calendar spine joined to `fact_order_sales` via `purchase_date_key`, this trend can be sliced by year/quarter/month and supports period-over-period comparisons (YTD, same-period-last-year).
+This page's job changed from earlier drafts. It used to ask one question — "is revenue growing?" — with a KPI row built entirely from growth measures. In the final build, it asks a broader question by pulling one headline signal from *each* of the other three pages: `Total Revenue` and `Total Orders` (growth), `Total Seller Revenue` and `Total Sellers` (a preview of the seller-concentration story), `Average Freight Ratio %` (a preview of the cost story), and `Pct Late Deliveries` (a preview of the delivery-reliability story). The Overview page is no longer just Act 1 — it's a compressed preview of Acts 2 through 4, all in one KPI row.
 
-**Evidence:** `Total Revenue`, `Total Orders` trended monthly, plus `Average Order Value` and `Revenue MoM Growth %` for headline context.
+**Evidence:** `Total Revenue`, `Total Orders`, `Total Seller Revenue`, `Total Sellers`, `Average Freight Ratio`, `Pct Late Deliveries`.
 
-**Dashboard page:** Overview — KPI card row, the Revenue/Orders trend chart, a Revenue-by-State bar chart, and a `Revenue MoM Growth %` KPI visual (with sparkline) sitting where a raw order-status breakdown was originally considered and dropped as too operational for a glance-level page. A date-range slicer lets this page (and everything downstream of it) exclude the dataset's incomplete trailing months — Olist's extract tapers off sharply in its last month or two, which otherwise reads as a fake revenue collapse rather than a data artifact.
+**Dashboard page:** Executive Overview — the six-KPI row above; a dual-axis Total Revenue and Orders trend by date (Y1 = revenue, Y2 = orders); a Freight Cost Ratio by State horizontal bar chart; and an Order Status breakdown donut. Two build notes worth knowing:
+- **The freight-by-state chart lives here, not on Logistics.** It was originally built on Logistics, then moved here deliberately, so a regional cost signal is visible without requiring a click into a deeper page. Logistics keeps a *city*-level cut of the same underlying cost story instead (Act 3), so the two pages don't duplicate each other.
+- **The Order Status donut reverses an earlier design decision.** Earlier drafts of this report explicitly dropped an order-status breakdown from this page as "too operational for a glance-level page." The final build reinstates it — worth knowing if anyone asks why it's back, since it's a deliberate reversal, not an oversight.
 
-**The claim this supports:** *"The marketplace is healthy and expanding."* This is the baseline the rest of the story complicates.
-
----
-
-## Act 2 — Growth concentrated in few hands
-
-**Business question:** Is this growth broad-based, or does it depend on a small number of sellers?
-
-A rising revenue line looks the same whether it comes from thousands of small sellers or a handful of large ones — but those two situations carry very different risk. If a small percentage of sellers generate most of the revenue, the marketplace has a concentration/dependency risk: losing a handful of accounts would materially hurt the topline.
-
-**Evidence:** `Total Seller Revenue`, `Seller Revenue Rank`, and `Cumulative Seller Revenue %` plotted against a flat `Pareto 80 Pct Line` reference — a true Pareto chart, not just a leaderboard, since the leaderboard version turned out to be redundant with the detail table (below) and was dropped in favor of a treemap.
-
-**Dashboard page:** Sellers — a KPI row, the Pareto/concentration chart, a sortable/filterable seller detail table (revenue, items sold, orders handled, avg item price, rank — filterable by state), and a Seller Revenue by State treemap. The treemap deliberately isn't a bar chart like the other "by state" views elsewhere on the dashboard — a treemap suits revenue (a part-of-whole quantity) better than it would suit a ratio metric, and it keeps the page visually distinct from Overview and Logistics rather than repeating the same chart shape a third time.
-
-**The claim this supports:** *"Growth is real, but it's fragile — retention and diversification of top sellers is a business-continuity issue, not just an account-management one."*
+**The claim this supports:** *"At a glance, the marketplace looks healthy across four different dimensions — growth, seller base, cost, and delivery reliability — and each of those four signals gets its own deep-dive page next."* This is the baseline the rest of the story complicates.
 
 ---
 
-## Act 3 — The geography of cost
+## Act 2 — Sellers: growth concentrated in a few hands, and in a few cities
 
-**Business question:** Where does the marketplace lose margin to logistics?
+**Business question:** Is growth broad-based, or does it depend on a small number of sellers — and are those top sellers themselves clustered in just a handful of cities?
 
-Freight cost isn't a flat tax on every order — `fact_geolocation_freight_avg` shows it varies by customer region, some zones running a much higher freight-to-item-value ratio than others. This reframes "shipping is expensive" from a general operating fact into a specific, addressable problem: certain regions are structurally more expensive to serve.
+The original version of this page only asked about revenue concentration. The final build adds a second lens: geographic concentration of the *top* sellers specifically, not just seller revenue in general.
 
-**Evidence:** `Average Freight Ratio`, `High Freight Zones`, broken out by state.
+**Evidence:** `Total Seller Revenue`, `Total Sellers`, `Top Performing Sellers`, `Average Items Sold Per Seller`, plus `Seller Revenue Rank` and `Cumulative Seller Revenue %` against the flat `Pareto 80 Pct Line` reference.
 
-**Dashboard page:** Logistics — a KPI row (`Total Zip Zones`, `Average Freight Ratio`, `High Freight Zones`), a Freight Cost Ratio by State bar chart, and a zip-level detail table filterable by a state slicer. (Build note: if this page is ever copied to create another one, rebuild any slicer's field from scratch against the new page's actual tables — a slicer copied along with the page kept filtering on the *old* page's dimension table, silently filtering nothing on the new one, since Power BI slicers only affect visuals on an actual relationship path from their own field.)
+**Dashboard page:** Sellers — a KPI row; a Total Seller Revenue by State horizontal bar chart; the seller-revenue Pareto/concentration chart (unchanged from earlier drafts — still the core evidence for "few sellers carry most of the revenue"); and a **Top 10 City by Top Seller Concentration** treemap. That treemap replaced an earlier state-level treemap — the state cut is now covered by the new bar chart instead, so the treemap was freed up to answer a sharper question: *of our highest-performing sellers specifically, which cities are they clustered in?*
 
-**The claim this supports:** *"Logistics cost is a geography problem, which means it has a geography-shaped solution — regional fulfillment or carrier renegotiation in the worst zones, not a blanket policy."*
+**The claim this supports:** *"Growth is real, but it's fragile on two fronts at once — a small number of sellers carry most of the revenue, and those same sellers aren't even spread across the country. Losing one city's worth of top sellers could hurt as much as losing any individual account."* Retention and diversification are now both a seller-level and a geography-level risk, not just the former.
 
 ---
 
-## Act 4 — Distance, delay, and trust
+## Act 3 — Logistics: the geography of cost, now tied to distance
 
-**Business question:** Does shipping distance predict unreliable delivery, and what does that cost the business?
+**Business question:** Where does the marketplace lose margin to logistics — and does distance actually drive that cost the same way it drives delivery delay?
 
-`fact_order_delivery_distance` lets us test whether the same regions that are expensive to ship to are also the ones where delivery is late. Plotting average delivery delay against distance (binned, since this table is order-item grain at ~112K rows) should show delay rising with distance — turning "some orders arrive late" into "distance is a leading indicator of delay," which is something operations can act on proactively rather than after the fact.
+This is the biggest change in this build. Earlier drafts of this report treated freight cost (Act 3) and delivery delay (Act 4) as two separate, unconnected stories — the freight table only ever knew a customer's ZIP zone, and the distance table never carried freight cost at all. That gap was explicitly named as unproven. It's now closed: a new measure, **`Delivery Freight Ratio %`**, pulls order-level freight value and item value onto the same table that already computes seller-to-customer distance, via two calculated columns (`Order Freight Value`, `Order Item Value`) using the same `LOOKUPVALUE` technique already in use elsewhere in this model. That makes it possible, for the first time, to plot freight cost against distance the same way delay is already plotted against distance.
 
-**Evidence:** `Average Delivery Delay`, `Average Distance`, `Pct Late Deliveries`, delay-vs-distance trend chart (binned).
+**Evidence:** `Total Zip Zones`, `Average Freight Ratio`, `High Freight Zones`, and the new `Delivery Freight Ratio %`.
 
-**Dashboard page:** Delivery — a KPI row, the distance/delay chart (binned into 50km groups, built as a Line and clustered column chart rather than a true scatter — Power BI's Analytics-pane trend line isn't available on scatter charts, only line/column/area/combo types, so this chart type was chosen specifically to support a real fitted trend line rather than just a reference line), an On-Time vs. Late donut, a Delay Bucket distribution bar chart (severity-sorted: On Time / 1-3 / 4-7 / 8-14 / 15+ days late), and a state-level delivery-performance detail table.
+**Dashboard page:** Logistics — a KPI row (unchanged); a **Top High Freight Zones by City** vertical bar chart, which replaces both the state-level chart (moved to Overview, Act 1) and the zip-level detail table from earlier drafts (this build has no table visuals anywhere — see cross-cutting notes below); a **Delivery Freight Ratio by Distance** line-and-clustered-column chart with a fitted trend line, built the same way as the Delivery page's distance/delay chart so it can carry a real statistical trend line rather than just a reference line; and a **Freight Cost vs. Order Volume by State** scatter plot (average freight value on X, total order count on Y, bubble size = freight ratio, colored by state) — this asks a question neither of the other two charts can: *are the states doing the most volume also the ones paying the highest freight cost, or is high freight cost concentrated in low-volume states instead?*
 
-**The claim this supports:** *"Delay is predictable, not random — and predictable problems can be resourced against."* The delay-bucket distribution adds a layer the averages alone hide: whether "late" mostly means mildly late (a small buffer would fix it) or whether a long tail of severely late orders is dragging the average up while most deliveries are actually fine — those are two different operational problems with two different fixes.
+**Two caveats worth naming here specifically:**
+1. The `Delivery Freight Ratio %` chart inherits the same corrupted-ZIP-centroid data quality issue already flagged on the Delivery page (Act 4) — since it uses the same `Distance (km)` column, any distance-based visual on either page is exposed unless it carries the `<4500km` filter.
+2. `Order Freight Value` is pulled at **order grain** and repeated across every item in a multi-item order — so an order with three items counts three times toward the freight-by-distance average, while a single-item order counts once. This is a reasonable approximation for a directional trend chart, but it's not a precise per-item allocation, and shouldn't be quoted as an exact freight-per-item figure.
 
-**Data quality finding, since it affects this Act specifically:** the first build of the distance chart showed bins running out to ~20,000km — close to Earth's theoretical maximum possible distance, and obviously impossible for two points inside Brazil (max real extent ~4,400km). Root cause: `dim_locations` computes each ZIP prefix's coordinate as `avg()` of every raw geolocation point sharing that prefix, with no outlier filtering — and Olist's public geolocation dataset has a known handful of points geocoded well outside Brazil. A single bad raw point is enough to drag an otherwise-normal ZIP's centroid off target. **Current state:** worked around with a visual-level filter (`Distance (km) < 4500`) on the distance chart only — this is a per-visual patch, not a fix, and any other visual or measure touching `distance_km` (including the `Average Distance` KPI card) is still exposed to the same corrupted centroids unless it carries the same filter. The permanent fix belongs in `dim_locations` (bound raw lat/lng to Brazil's real range before the `avg()`) and hasn't been applied yet — see [`measures.md`](measures.md) for the DAX-level note.
+**The claim this supports:** *"Logistics cost isn't just regional (the bar chart) — it's distance-driven (the new trend chart), the same underlying variable that drives delivery delay. That means the same regional logistics investment that would fix delay in Act 4 plausibly reduces freight cost too — these aren't two separate problems needing two separate fixes, they're two symptoms of the same root cause."*
 
-**Honest caveat — the chapter this story can't finish yet:** the pipeline stages a customer review dataset (`stg_order_reviews`) but it isn't joined into any mart yet. That means "late delivery hurts customer trust" is currently an assumption borrowed from general marketplace intuition, not a number this warehouse can prove. The report is more persuasive with that gap named than with the claim quietly asserted as fact.
+---
+
+## Act 4 — Delivery: distance, delay, and monitoring over time
+
+**Business question:** Does shipping distance predict unreliable delivery — and is delivery performance improving or getting worse over time?
+
+The core distance-vs-delay evidence is unchanged from earlier drafts. What changed is the page's second chart: earlier drafts used a delay-severity bucket chart (On Time / 1–3 / 4–7 / 8–14 / 15+ days late) to distinguish "mostly mild delays" from "a severe long tail." The final build replaces that with a **Delivery Performance by Month** chart instead, trading the severity breakdown for a temporal one.
+
+**Evidence:** `Total Deliveries`, `Average Delivery Delay`, `Average Distance`, `Pct Late Deliveries`.
+
+**Dashboard page:** Delivery — a KPI row; an On-Time vs. Late donut (unchanged); a **Delivery Performance by Month** line-and-clustered-column chart (average delay as columns, % late deliveries as a line, trended by month — note: this chart's month axis needs `Sort by Column` set to a numeric month field, since the raw month-name text field sorts alphabetically, not chronologically, by default); and the **Delivery Delay by Distance** binned trend chart (unchanged — the reason this chart type is a line-and-clustered-column rather than a scatter is the same as before: Power BI's Analytics-pane trend line only supports line/column/area/combo chart types).
+
+**Worth flagging if asked:** the delay-bucket severity view from earlier drafts is no longer part of this page. That means the page no longer directly answers "is late mostly mild or mostly severe" — it now answers "is delivery reliability trending better or worse over time" instead. If the severity distinction still matters to a stakeholder, it would need to be added back as a fifth visual; it isn't currently duplicated anywhere else in the build.
+
+**The claim this supports:** *"Delay is predictable via distance — a lever operations can act on proactively — and now trackable month over month, so the business can tell whether logistics investment is actually improving reliability over time, not just whether distance correlates with delay in the abstract."*
 
 ---
 
 ## Act 5 — The next chapter: closing the loop on cost and trust
 
-The natural continuation of this story is connecting delivery performance to customer sentiment: does a delayed order actually correlate with a lower review score? If so, the freight-cost and delivery-delay findings in Acts 3–4 stop being purely an operations story and become a revenue-risk story — "delay costs us Y in future retention/reviews," which is the sentence that moves budget.
+The natural continuation of this story is still connecting delivery performance to customer sentiment — this hasn't changed with the new build. Does a delayed order actually correlate with a lower review score? If so, the freight-cost and delivery-delay findings in Acts 3–4 stop being purely an operations story and become a revenue-risk story — "delay costs us Y in future retention/reviews," which is the sentence that moves budget.
 
-**Recommended next step:** build a model joining `stg_order_reviews` into the order-level fact table (or a small standalone `fact_order_reviews`), and add a measure like *average review score by delivery-delay bucket*. That single addition would let Act 4 end with a number instead of a caveat.
+**Recommended next step:** build a model joining `stg_order_reviews` into the order-level fact table (or a small standalone `fact_order_reviews`), and add a measure like *average review score by delivery-delay bucket*. That single addition would let Act 4 end with a number instead of a caveat — and now that Act 3 has proven the freight-cost/distance link, a review-score join would let that same logic extend to freight cost as well: does a higher-freight order also correlate with lower satisfaction?
 
 ---
 
 ## So what — recommendations
 
-1. **Seller diversification program.** The revenue concentration in Act 2 is a retention priority for top sellers and a growth priority for the long tail, not just a leaderboard curiosity.
-2. **Targeted regional logistics investment.** Use the freight-ratio-by-region view (Act 3) to prioritize *which* regions get a renegotiated carrier contract or a regional fulfillment point, instead of treating logistics cost as a uniform problem.
-3. **Proactive delay management on high-distance corridors.** If delay predictably rises with distance (Act 4), that's a lever for setting realistic estimated-delivery windows or pre-flagging high-risk shipments, rather than reacting to lateness after the fact.
-4. **Instrument the review-score linkage.** Closing the Act 5 gap turns three operational findings into one financial one, and is the highest-leverage next addition to the data model for this narrative specifically.
+1. **Seller diversification program.** The revenue concentration in Act 2 is a retention priority for top sellers and a growth priority for the long tail — and now that the treemap shows those top sellers cluster geographically too, this is also a city-level diversification question, not just an account-level one.
+2. **Targeted regional logistics investment — now with a sharper target.** Act 3 previously supported only a regional (state/city) cut of where to invest. It now also supports a distance-based cut, since freight cost has been shown to rise with distance the same way delay does — meaning the same investment (a regional fulfillment point, a renegotiated carrier contract for long-haul routes) plausibly addresses both cost and delay at once.
+3. **Proactive delay and freight management on high-distance corridors.** If both delay and freight cost predictably rise with distance, that's a lever for setting realistic estimated-delivery windows, pre-flagging high-risk shipments, *and* budgeting for freight cost on long-haul orders — one root cause, two operational fixes.
+4. **Instrument the review-score linkage.** Closing the Act 5 gap turns four operational findings (growth, concentration, cost, delay) into financial ones, and is still the highest-leverage next addition to the data model for this narrative specifically.
 
 ---
 
 ## Appendix — narrative-to-dashboard map
 
-| Act | Business question | Dashboard page | Key measures |
+| Act | Business question | Dashboard page | Key measures / visuals |
 |---|---|---|---|
-| 1 | Is the business growing? | Overview — trend, revenue-by-state, growth KPI | `Total Revenue`, `Total Orders`, `Average Order Value`, `Revenue MoM Growth %` |
-| 2 | Is growth broad-based or concentrated? | Sellers — Pareto chart, detail table, treemap | `Total Seller Revenue`, `Seller Revenue Rank`, `Cumulative Seller Revenue %` |
-| 3 | Where is logistics cost highest? | Logistics — freight-by-state, detail table | `Average Freight Ratio`, `High Freight Zones` |
-| 4 | Does distance predict delay? | Delivery — delay/distance trend, delay buckets, detail table | `Average Delivery Delay`, `Average Distance`, `Pct Late Deliveries`, `Delay Bucket` |
-| 5 | Does delay affect customer trust? | *(not yet built — needs review-score join)* | *(new)* average review score by delay bucket |
+| 1 | Is the business healthy overall — growth, cost, seller base, delivery, all at once? | Executive Overview — dual-axis revenue/orders trend, freight-by-state bar, order-status donut | `Total Revenue`, `Total Orders`, `Total Seller Revenue`, `Total Sellers`, `Average Freight Ratio`, `Pct Late Deliveries` |
+| 2 | Is growth broad-based, or concentrated in a few sellers and cities? | Sellers — revenue-by-state bar, Pareto chart, top-city treemap | `Total Seller Revenue`, `Seller Revenue Rank`, `Cumulative Seller Revenue %`, `Top Performing Sellers` |
+| 3 | Where is logistics cost highest, and does distance drive it? | Logistics — high-freight-zones-by-city bar, freight-by-distance trend, freight-vs-volume scatter | `Average Freight Ratio`, `High Freight Zones`, `Delivery Freight Ratio %` |
+| 4 | Does distance predict delay, and is reliability trending better or worse? | Delivery — on-time/late donut, performance-by-month chart, delay-by-distance trend | `Average Delivery Delay`, `Average Distance`, `Pct Late Deliveries` |
+| 5 | Does delay (or freight cost) affect customer trust? | *(not yet built — needs review-score join)* | *(new)* average review score by delay bucket |
 
 **Cross-cutting build notes** (not tied to one Act, but relevant to reading the dashboard correctly):
-- Every trend/KPI visual is subject to the incomplete-trailing-data issue flagged in Act 1 — the date-range slicer's default selection should exclude it, but any *new* visual added later needs that checked, not assumed.
-- Distance-based measures (Act 4) are subject to the ZIP-centroid data quality issue until the `dim_locations` fix lands — treat `Average Distance` anywhere it appears with that caveat in mind.
-- All cross-filtering between charts and KPI cards was deliberately disabled per visual (Format → Edit interactions) — clicking a bar/point/slice is not expected to filter the KPI row on any page.
+- **Every page now has its own date-range and multi-state slicer**, not just Executive Overview. This is a real upgrade over earlier drafts — any act can be re-cut by time and region independently. It also means there are now four times as many slicer fields to get right: if any page's slicer was copied from another page rather than built fresh against that page's own tables, it will silently filter nothing (see the original Logistics build note this replaces).
+- **This build has no table visuals anywhere.** Every page that used to rely on a sortable detail table (Sellers, Logistics) now uses a ranked bar chart, treemap, or scatter plot instead, with drill-down detail moved into tooltips rather than rows.
+- **Distance-based measures are subject to the ZIP-centroid data quality issue on two pages now, not one** — Delivery (`Average Distance`, delay-by-distance) and Logistics (`Delivery Freight Ratio %`) both read the same `Distance (km)` column and need the same `<4500km` treatment.
+- The Executive Overview's date-range slicer default selection should still exclude the incomplete trailing months flagged in earlier drafts — this hasn't changed, and any new visual added later still needs that checked, not assumed.
+- All cross-filtering between charts and KPI cards was deliberately disabled per visual (Format → Edit interactions) in earlier drafts — carry this forward and verify it's still applied on the new visuals added in this build (freight-by-distance chart, scatter plot, order-status donut, performance-by-month chart), since it wasn't automatically inherited when they were created.

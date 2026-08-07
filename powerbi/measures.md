@@ -132,6 +132,50 @@ currently work around this with a visual-level filter (`Distance (km) < 4500`, B
 max extent); the permanent fix belongs in `dim_locations` itself (bound raw lat/lng to Brazil's
 range before the `avg()`), not repeated per-visual. Not yet applied as of this writing.
 
+## fact_order_delivery_distance — freight cost added for the Logistics page
+
+To build the Logistics page's "Delivery Freight Ratio by Distance" chart, freight cost needed
+to live on the same table as distance — it didn't before. `fact_order_sales` has freight and
+item value at *order* grain; `fact_order_delivery_distance` is at *order-item* grain and had
+no freight columns at all. Rather than changing the dbt model, these are pulled in as
+calculated columns using the same `LOOKUPVALUE` pattern already used for `Customer State`
+below.
+
+```dax
+Order Freight Value = 
+LOOKUPVALUE(
+    'public fact_order_sales'[Total Freight Value],
+    'public fact_order_sales'[Order Id], 'public fact_order_delivery_distance'[Order Id]
+)
+```
+
+```dax
+Order Item Value = 
+LOOKUPVALUE(
+    'public fact_order_sales'[Total Items Value],
+    'public fact_order_sales'[Order Id], 'public fact_order_delivery_distance'[Order Id]
+)
+```
+
+```dax
+Delivery Freight Ratio % = 
+DIVIDE(
+    AVERAGE('public fact_order_delivery_distance'[Order Freight Value]),
+    AVERAGE('public fact_order_delivery_distance'[Order Item Value])
+)
+```
+
+**Data quality note:** both calculated columns are pulled at *order* grain and repeated across
+every row (order item) belonging to that order — a 3-item order shows the same freight and item
+value on all 3 rows. `AVERAGE()` on top of that means multi-item orders are implicitly weighted
+more heavily than single-item orders in this measure. It's a reasonable approximation for a
+directional distance trend chart, but not a precise per-item freight allocation — don't quote it
+as an exact per-item figure.
+
+Since this measure shares the `Distance (km)` column with `Average Distance` above, it's exposed
+to the same corrupted-ZIP-centroid issue and needs the same `Distance (km) < 4500` visual filter
+wherever it's charted against distance.
+
 ## fact_geolocation_freight_avg
 
 ```dax
@@ -207,11 +251,19 @@ text labels would otherwise sort alphabetically ("1-3 Days Late" before "15+ Day
 | Currency | `Total Revenue`, `Average Item Price`, `Total Seller Revenue`, `Average Order Value` |
 | Whole Number | `Total Orders`, `High Value Orders`, `Total Sellers`, `Top Performing Sellers`, `Total Deliveries`, `Total Zip Zones`, `High Freight Zones`, `Seller Revenue Rank` |
 | Decimal Number | `Average Items Sold Per Seller`, `Average Delivery Delay`, `Average Distance`, `Average Freight Ratio` |
-| Percentage | `Pct Revenue By State`, `Pct Seller Revenue By State`, `Pct Late Deliveries`, `Revenue MoM Growth %`, `Cumulative Seller Revenue %`, `Pareto 80 Pct Line` |
+| Percentage | `Pct Revenue By State`, `Pct Seller Revenue By State`, `Pct Late Deliveries`, `Revenue MoM Growth %`, `Cumulative Seller Revenue %`, `Pareto 80 Pct Line`, `Delivery Freight Ratio %` |
 
 Note: `Average Freight Ratio` is Decimal Number, not Percentage — the underlying
 `Freight Cost Ratio %` column already stores a plain percentage value (e.g. `18.53`
 meaning 18.53%), so applying Percentage format would double-apply and show `1853%`.
+
+Note: `Delivery Freight Ratio %` is the opposite case — it *is* formatted as Percentage,
+correctly. Unlike `Average Freight Ratio` (which averages an already-computed percentage
+column from the warehouse), this measure divides two raw currency amounts (`Order Freight
+Value` ÷ `Order Item Value`) directly in DAX, so `DIVIDE` returns a genuine fraction like
+`0.185`, not a pre-multiplied `18.5`. Percentage format is the right call here specifically
+because of how the measure is built, not despite it — don't apply the same Decimal-Number
+rule to both measures just because they sound similar.
 
 Note: `Pareto 80 Pct Line` must be formatted as Percentage even though it's a hardcoded constant
 (`0.8`) — it needs to render on the same 0–100% scale as `Cumulative Seller Revenue %` to work as
